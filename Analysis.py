@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
+import optuna
 
 df = pd.read_csv("C:/Users/Marlon/OneDrive/Dokumente/BreastCancerXGBoost/archive/data.csv")
 
@@ -11,30 +12,62 @@ df.head()
 df.info()
 
 df.columns[df.isnull().any()].tolist()
-# Löschen der Spalte mit fehlenden Werten
+
+# Deleting empty cloumns
 df.drop(['Unnamed: 32'], axis=1, inplace=True)
 
-# Separation der Zielvariable und den Werten
+# Seperation of training and test-datasets
 X = df.drop('diagnosis', axis=1)
 y = df['diagnosis']
 
-# Kategorisierung der beiden Variablen
-# Bösrtige Tumore: 1, Gutartige Tumore: 0
+# Classification: malignant: 1, beneign: 0
 y = y.map({'M':1, 'B':0})
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-model = xgb.XGBClassifier()
-model.fit(X_train, y_train)
+# Objective-function for optuna 
+# Hyperparametertuning
+def objective(trial):
+    param = {
+        'objective': 'binary:logistic',
+        'eval_metric': 'logloss',
+        'n_estimators': trial.suggest_int('n_estimators', 50, 300),
+        'max_depth': trial.suggest_int('max_depth', 3, 10),
+        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
+        'subsample': trial.suggest_float('subsample', 0.6, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.6, 1.0),
+        'reg_alpha': trial.suggest_float('reg_alpha', 0, 10),
+        'reg_lambda': trial.suggest_float('reg_lambda', 0, 10)
+    }
+    
+    model = xgb.XGBClassifier(**param, random_state=42)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred) 
+    return accuracy
 
-# Vorhersagen basierend auf den Testdaten
+# Study and optimize optuna output
+study = optuna.create_study(direction='maximize', sampler=optuna.samplers.TPESampler(seed=42))
+study.optimize(objective, n_trials=50)
+
+print("Best trial:")
+best_trial = study.best_trial
+print(f"  Value: {best_trial.value}")
+print("  Params: ")
+for key, value in best_trial.params.items():
+    print(f"    {key}: {value}")
+
+best_params = best_trial.params
+model = xgb.XGBClassifier(**best_params, random_state=42)
+model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
-# Genauigkeit des Modells, also den Anteil der korrekt vorhergesagten Ergebnisse im Verhältnis zu allen Vorhersagen
+# Accuracy, should be identical to optuna value
 accuracy = accuracy_score(y_test, y_pred)
 print("Accuracy:", accuracy)
 
-# Konfusionsmatrix mit Heatmap
+
+# Confusion matrix heatmap
 conf_matrix = confusion_matrix(y_test, y_pred)
 sns.heatmap(conf_matrix, annot=True, fmt='g')
 plt.xlabel('Predicted')
@@ -43,7 +76,7 @@ plt.show()
 
 # Report
 print(classification_report(y_test, y_pred)) 
-# Feature importance: welche Werte haben den größten Einfluss auf das Modell?
+# Feature importance
 xgb.plot_importance(model)
 plt.rcParams['figure.figsize'] = [12, 9]
 plt.show() 
