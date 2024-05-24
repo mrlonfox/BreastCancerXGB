@@ -7,26 +7,26 @@ import seaborn as sns
 import optuna
 
 df = pd.read_csv("C:/Users/Marlon/OneDrive/Dokumente/BreastCancerXGBoost/archive/data.csv")
-
 df.head()
-df.info()
 
+# Check empty columns
+df.info()
 df.columns[df.isnull().any()].tolist()
 
-# Deleting empty cloumns
+# Delete empty cloumns
 df.drop(['Unnamed: 32'], axis=1, inplace=True)
 
-# Seperation of training and test-datasets
+# Separation of training and test-datasets
 X = df.drop('diagnosis', axis=1)
 y = df['diagnosis']
 
 # Classification: malignant: 1, beneign: 0
 y = y.map({'M':1, 'B':0})
 
+# Define test and train data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Objective-function for optuna 
-# Hyperparametertuning
+# Objective function for optuna
 def objective(trial):
     param = {
         'objective': 'binary:logistic',
@@ -39,7 +39,7 @@ def objective(trial):
         'reg_alpha': trial.suggest_float('reg_alpha', 0, 10),
         'reg_lambda': trial.suggest_float('reg_lambda', 0, 10)
     }
-    
+
     model = xgb.XGBClassifier(**param, random_state=42)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
@@ -57,6 +57,7 @@ print("  Params: ")
 for key, value in best_trial.params.items():
     print(f"    {key}: {value}")
 
+# Train final model with best parameters
 best_params = best_trial.params
 model = xgb.XGBClassifier(**best_params, random_state=42)
 model.fit(X_train, y_train)
@@ -66,7 +67,6 @@ y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 print("Accuracy:", accuracy)
 
-
 # Confusion matrix heatmap
 conf_matrix = confusion_matrix(y_test, y_pred)
 sns.heatmap(conf_matrix, annot=True, fmt='g')
@@ -75,7 +75,8 @@ plt.ylabel('True')
 plt.show()
 
 # Report
-print(classification_report(y_test, y_pred)) 
+print(classification_report(y_test, y_pred))
+
 # Feature importance
 xgb.plot_importance(model)
 plt.rcParams['figure.figsize'] = [12, 9]
