@@ -63,10 +63,6 @@ model = xgb.XGBClassifier(**best_params, random_state=42)
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
-# Accuracy, should be identical to optuna value
-accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy:", accuracy)
-
 # Confusion matrix heatmap
 conf_matrix = confusion_matrix(y_test, y_pred)
 sns.heatmap(conf_matrix, annot=True, fmt='g')
