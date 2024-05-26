@@ -43,7 +43,7 @@ def objective(trial):
     model = xgb.XGBClassifier(**param, random_state=42)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred) 
+    accuracy = accuracy_score(y_test, y_pred)
     return accuracy
 
 # Study and optimize optuna output
@@ -59,21 +59,21 @@ for key, value in best_trial.params.items():
 
 # Train final model with best parameters
 best_params = best_trial.params
-model = xgb.XGBClassifier(**best_params, random_state=42)
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
+final_model = xgb.XGBClassifier(**best_params, random_state=42)
+final_model.fit(X_train, y_train)
+final_y_pred = final_model.predict(X_test)
 
 # Confusion matrix heatmap
-conf_matrix = confusion_matrix(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, final_y_pred)
 sns.heatmap(conf_matrix, annot=True, fmt='g')
 plt.xlabel('Predicted')
 plt.ylabel('True')
 plt.show()
 
 # Report
-print(classification_report(y_test, y_pred))
+print(classification_report(y_test, final_y_pred))
 
 # Feature importance
-xgb.plot_importance(model)
+xgb.plot_importance(final_model)
 plt.rcParams['figure.figsize'] = [12, 9]
 plt.show() 
