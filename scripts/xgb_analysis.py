@@ -5,6 +5,7 @@ The pipeline includes data preprocessing, model training, hyperparameter tuning 
 and evaluation  of the model's performance. 
 The dataset used for this pipeline is a breast cancer dataset loaded from a CSV file on Kaggle.com.
 """
+import os
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
@@ -13,7 +14,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import optuna
 
-df = pd.read_csv("C:/Users/Marlon/OneDrive/Dokumente/BreastCancerXGBoost/archive/data.csv")
+data_path = os.path.join("..", "data", "data.csv")
+df = pd.read_csv(data_path)
 df.head()
 
 # Check empty columns
