@@ -1,3 +1,10 @@
+"""
+This module implements a machine learning pipeline for breast cancer diagnosis 
+using the XGBoost classifier.
+The pipeline includes data preprocessing, model training, hyperparameter tuning with Optuna
+and evaluation  of the model's performance. 
+The dataset used for this pipeline is a breast cancer dataset loaded from a CSV file on Kaggle.com.
+"""
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
@@ -28,6 +35,26 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 # Objective function for optuna
 def xgb_objective(trial):
+    """
+      Objective function for Optuna hyperparameter optimization of an XGBoost classifier.
+
+    Suggests hyperparameters for the XGBoost model and evaluates its accuracy on the test dataset.
+
+    Suggested Hyperparameters:
+        - n_estimators: Number of boosting rounds.
+        - max_depth: Maximum tree depth.
+        - learning_rate: Step size shrinkage.
+        - subsample: Subsample ratio of training instances.
+        - colsample_bytree: Subsample ratio of columns.
+        - reg_alpha: L1 regularization term.
+        - reg_lambda: L2 regularization term.
+
+    Args:
+        trial (optuna.trial.Trial): Trial object for suggesting hyperparameters.
+
+    Returns:
+        float: Accuracy of the model on the test dataset.
+    """
     param = {
         'objective': 'binary:logistic',
         'eval_metric': 'logloss',
