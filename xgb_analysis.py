@@ -36,7 +36,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Objective function for optuna
 def xgb_objective(trial):
     """
-      Objective function for Optuna hyperparameter optimization of an XGBoost classifier.
+    Objective function for Optuna hyperparameter optimization of an XGBoost classifier.
 
     Suggests hyperparameters for the XGBoost model and evaluates its accuracy on the test dataset.
 
