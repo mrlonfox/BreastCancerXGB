@@ -27,7 +27,7 @@ y = y.map({'M':1, 'B':0})
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Objective function for optuna
-def objective(trial):
+def xgb_objective(trial):
     param = {
         'objective': 'binary:logistic',
         'eval_metric': 'logloss',
@@ -40,40 +40,40 @@ def objective(trial):
         'reg_lambda': trial.suggest_float('reg_lambda', 0, 10)
     }
 
-    model = xgb.XGBClassifier(**param, random_state=42)
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
+    xgb_model = xgb.XGBClassifier(**param, random_state=42)
+    xgb_model.fit(X_train, y_train)
+    y_pred = xgb_model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     return accuracy
 
 # Study and optimize optuna output
-study = optuna.create_study(direction='maximize', sampler=optuna.samplers.TPESampler(seed=42))
-study.optimize(objective, n_trials=50)
+xgb_study = optuna.create_study(direction='maximize', sampler=optuna.samplers.TPESampler(seed=42))
+xgb_study.optimize(xgb_objective, n_trials=50)
 
-print("Best trial:")
-best_trial = study.best_trial
-print(f"  Value: {best_trial.value}")
+print("Best trial: (XGBoost)")
+xgb_best_trial = xgb_study.best_trial
+print(f"  Value: {xgb_best_trial.value}")
 print("  Params: ")
-for key, value in best_trial.params.items():
+for key, value in xgb_best_trial.params.items():
     print(f"    {key}: {value}")
 
 # Train final model with best parameters
-best_params = best_trial.params
-final_model = xgb.XGBClassifier(**best_params, random_state=42)
-final_model.fit(X_train, y_train)
-final_y_pred = final_model.predict(X_test)
+xgb_best_params = xgb_best_trial.params
+xgb_final_model = xgb.XGBClassifier(**xgb_best_params, random_state=42)
+xgb_final_model.fit(X_train, y_train)
+xgb_final_y_pred = xgb_final_model.predict(X_test)
 
 # Confusion matrix heatmap
-conf_matrix = confusion_matrix(y_test, final_y_pred)
+conf_matrix = confusion_matrix(y_test, xgb_final_y_pred)
 sns.heatmap(conf_matrix, annot=True, fmt='g')
 plt.xlabel('Predicted')
 plt.ylabel('True')
 plt.show()
 
 # Report
-print(classification_report(y_test, final_y_pred))
+print(classification_report(y_test, xgb_final_y_pred))
 
 # Feature importance
-xgb.plot_importance(final_model)
+xgb.plot_importance(xgb_final_model)
 plt.rcParams['figure.figsize'] = [12, 9]
-plt.show() 
+plt.show()
