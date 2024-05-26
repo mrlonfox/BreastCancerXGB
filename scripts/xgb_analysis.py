@@ -8,19 +8,17 @@ The dataset used for this pipeline is a breast cancer dataset loaded from a CSV 
 import os
 import pandas as pd
 import xgboost as xgb
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
 import optuna
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 data_path = os.path.join(".", "data", "data.csv")
 df = pd.read_csv(data_path)
-df.head()
 
 # Check empty columns
 df.info()
-df.columns[df.isnull().any()].tolist()
 
 # Delete empty cloumns
 df.drop(['Unnamed: 32'], axis=1, inplace=True)
