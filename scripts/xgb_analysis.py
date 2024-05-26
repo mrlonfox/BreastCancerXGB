@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import optuna
 
-data_path = os.path.join("..", "data", "data.csv")
+data_path = os.path.join(".", "data", "data.csv")
 df = pd.read_csv(data_path)
 df.head()
 
